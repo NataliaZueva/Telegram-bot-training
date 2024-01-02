@@ -5,7 +5,13 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 botTimeWeb = telebot.TeleBot('6782691562:AAFOUfac0eiFvfZVH_mCGoa1Oaej0g54DEk')
 chemical_elements = {}  # Пустой словарь химических элементов
 chemical_elements_old = {}  # Пустой словарь химических элементов, которе игрок использовал
-chemical_old = [] # Массив из названий собранных полимеров
+chemical_old = []  # Массив из названий собранных полимеров
+
+polymers_game = {
+    'glycine': {'O': 2, 'H': 5, 'N': 1, 'C': 2},
+    'kvskm': {'O': 2},
+    'sgrthe': {'N': 2}
+}
 
 
 # начальное окно спрашивает о действиях после команды /start
@@ -61,18 +67,19 @@ def gameBegin(call):
 @botTimeWeb.message_handler(
     func=lambda message: message.text in ['C', 'H', 'O', 'N', 'Cl', 'CH', 'CH2', 'CH3', 'C6H4', 'C6H5'])
 def add_element(message):
+    # Если элемент нажат прибавить его в словарь
     element = message.text
     if element in chemical_elements:
         chemical_elements[element] += 1
     else:
         chemical_elements[element] = 1
-
+    # Вывод элементов на руках
     elements = '\n'.join([f"{key}: {value}" for key, value in chemical_elements.items()])
     botTimeWeb.send_message(message.chat.id, f"Элементы, которые есть на данный момент:\n{elements}")
 
+    polymers = get_ready_polymers()
     # Проверка наличия достаточного количества элементов для полимеров
-    if check_polymer():
-        polymers = get_ready_polymers()
+    if polymers != {}:
         poly = []
         for polymer, elements in polymers.items():
             elements_str = ', '.join([f"{key}: {value}" for key, value in elements.items()])
@@ -88,11 +95,13 @@ def add_element(message):
         botTimeWeb.send_message(message.chat.id, "Хотите собрать что-нибудь??", reply_markup=markup)
 
 
+# Проверка нажатости на кнопки Да и Нет
 @botTimeWeb.callback_query_handler(func=lambda call: True)
 def callback_handler(callback_query):
     handle_button_click(callback_query)
 
 
+# Проверка на Да - вывод возможно собранных элементов
 def handle_button_click(callback_query):
     if callback_query.data == 'yes':
         polymers = get_ready_polymers()
@@ -108,29 +117,10 @@ def handle_button_click(callback_query):
                                     reply_markup=reply_markup)
 
 
-def check_polymer():
-    polymers = {
-        'glycine': {'O': 2, 'H': 5, 'N': 1, 'C': 2},
-        'kvskm': {'O': 2},
-        'sgrthe': {'N': 2}
-    }
-
-    for polymer, elements in polymers.items():
-        if all(element in chemical_elements and chemical_elements[element] >= count for element, count in
-               elements.items()):
-            return True
-
-    return False
-
-
+# Проверка на то если ли возможность уже что-то собрать
 def get_ready_polymers():
-    polymers = {
-        'glycine': {'O': 2, 'H': 5, 'N': 1, 'C': 2},
-        'kvskm': {'O': 2}
-    }
-
     ready_polymers = {}
-    for polymer, elements in polymers.items():
+    for polymer, elements in polymers_game.items():
         if all(element in chemical_elements and chemical_elements[element] >= count for element, count in
                elements.items()):
             ready_polymers[polymer] = elements
