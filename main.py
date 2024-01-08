@@ -1,3 +1,4 @@
+import os
 import telebot
 from telebot import types
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -7,11 +8,28 @@ chemical_elements = {}  # Пустой словарь химических эл�
 chemical_elements_old = {}  # Пустой словарь химических элементов, которе игрок использовал
 chemical_old = []  # Массив из названий собранных полимеров
 
-polymers_game = {
-    'glycine': {'O': 2, 'H': 5, 'N': 1, 'C': 2},
-    'kvskm': {'O': 2},
-    'sgrthe': {'N': 2}
-}
+with open('polymers.txt', 'r', encoding="utf-8") as file:
+    lines = file.readlines()
+    polymers_game = {}
+    fields = {}
+    for line in lines:
+        composition_dict = {}
+        polymer, field, *composition = line.split()
+        field = field.split('-')[0]
+        composition = [i.split(":") for i in composition[1:]]
+        for each in composition:
+            composition_dict[each[0]] = int(each[1])
+        if field in fields:
+            fields[field] += 1
+        else:
+            fields[field] = 1
+        polymers_game[polymer] = composition_dict
+
+fields['beta'] += fields['alpha']
+fields['gamma'] += fields['beta']
+flag_a = False
+flag_b = False
+flag_g = False
 
 
 # начальное окно спрашивает о действиях после команды /start
@@ -29,9 +47,22 @@ def startBot(message):
 # Правила игры
 @botTimeWeb.callback_query_handler(func=lambda call: call.data == 'game_rules')
 def gameRules(call):
-    botTimeWeb.send_message(call.message.chat.id, "Вот правила игры:")
-    botTimeWeb.send_photo(call.message.chat.id, photo=open('khimloto.png', 'rb'))
-    botTimeWeb.send_message(call.message.chat.id, "Чтобы вернуться назад, нажмите /start")
+    botTimeWeb.send_message(call.message.chat.id, "Это будут интерактивные правила!!!")
+    botTimeWeb.send_photo(call.message.chat.id, photo=open('image/rules_1.png', 'rb'),
+                          caption="В начале игры перед вами есть доска на которой нужно будет собрать СФ")
+    # Добавляем кнопку "Дальше"
+    keyboard = types.InlineKeyboardMarkup()
+    next_button1 = types.InlineKeyboardButton("Что такое СФ?", callback_data='next')
+    next_button2 = types.InlineKeyboardButton("Для чего она?", callback_data='next')
+    keyboard.add(next_button1, next_button2)
+
+    botTimeWeb.send_message(call.message.chat.id, "Нажмите кнопку 'Дальше' для продолжения.", reply_markup=keyboard)
+
+
+# Продолжение правил
+@botTimeWeb.callback_query_handler(func=lambda call: call.data == 'next')
+def nextStep(call):
+    botTimeWeb.send_message(call.message.chat.id, "Конец")
 
 
 # После начала начинается игра с кнопками
@@ -52,15 +83,46 @@ def gameBegin(call):
     button_c6h5 = types.KeyboardButton(text='C6H5')
     markup.add(button_ch, button_ch2, button_ch3, button_c6h4, button_c6h5)
 
-    button_rules = types.KeyboardButton(text='Правила')
-    button_polymer = types.KeyboardButton(text='Полимеры ')
-    markup.add(button_rules, button_polymer)
-
     button_used_sf = types.KeyboardButton(text='Использованные СФ')
+    markup.add(button_used_sf)
+
+    button_polymer = types.KeyboardButton(text='Полимеры')
     button_finish = types.KeyboardButton(text='Закончить')
-    markup.add(button_used_sf, button_finish)
+    markup.add(button_polymer, button_finish)
 
     botTimeWeb.send_message(call.message.chat.id, "Выберите действие:", reply_markup=markup)
+
+
+@botTimeWeb.message_handler(func=lambda message: message.text == 'Использованные СФ')
+def used_SF(message):
+    elements = '\n'.join([f"{key}: {value}" for key, value in chemical_elements_old.items()])
+    botTimeWeb.send_message(message.chat.id, f"Вот все СФ, что вы уже использовали:\n{elements}")
+
+
+@botTimeWeb.message_handler(func=lambda message: message.text == 'Закончить')
+def finish(message):
+    global flag_a, flag_b, flag_g, chemical_elements, chemical_elements_old, chemical_old
+
+    fields['beta'] += fields['alpha']
+    fields['gamma'] += fields['beta']
+
+    flag_a = False
+    flag_b = False
+    flag_g = False
+
+    chemical_elements = {}
+    chemical_elements_old = {}
+    chemical_old = []
+
+    botTimeWeb.send_message(message.chat.id, "Программа сброшена, но вы можете начать заново \n/start")
+
+
+# Отобразить доску правил сбора полимеров
+@botTimeWeb.message_handler(
+    func=lambda message: message.text in ['Полимеры'])
+def polim(message):
+    botTimeWeb.send_photo(message.chat.id, photo=open('image/khimloto.png', 'rb'),
+                          caption="Вы можете ознакомиться со всеми полимерами которые бывают!")
 
 
 # проверка нажатия на кнопки хим элементов
@@ -101,20 +163,127 @@ def callback_handler(callback_query):
     handle_button_click(callback_query)
 
 
+def get_polymer_image_filename(polymer_name):
+    return f"{polymer_name}.png"
+
+
 # Проверка на Да - вывод возможно собранных элементов
 def handle_button_click(callback_query):
+    polymers = get_ready_polymers()
+
     if callback_query.data == 'yes':
-        polymers = get_ready_polymers()
         if polymers:
             buttons = []
+            but = {}
+            i = 1
             for polymer, elements in polymers.items():
-                button_text = f"{polymer}"
-                button = InlineKeyboardButton(button_text, callback_data=polymer)
+                but[i] = polymer
+                button = InlineKeyboardButton(i, callback_data=polymer)
                 buttons.append(button)
-            reply_markup = InlineKeyboardMarkup([buttons])
+                i += 1
+
+            but_i = '\n'.join([f"{key} -  {value}" for key, value in but.items()])
+
+            num_buttons = len(buttons)
+            num_rows = (num_buttons + 7) // 8
+            rows = [buttons[i:i + 8] for i in range(0, num_buttons, 8)]
+
+            reply_markup = InlineKeyboardMarkup(rows)
             botTimeWeb.send_message(callback_query.message.chat.id,
-                                    "Соберите следующие полимеры прямо сейчас:",
+                                    f"Выберете номер полимера для сбора: \n {but_i}",
                                     reply_markup=reply_markup)
+
+
+    else:
+        global flag_a, flag_b, flag_g
+        for element, count in polymers[callback_query.data].items():
+            if element in chemical_elements_old:
+                chemical_elements_old[element] += count
+            else:
+                chemical_elements_old[element] = count
+            chemical_elements[element] -= count
+        chemical_old.append(callback_query.data)
+        keys_list = list(polymers_game.keys())
+        index_in_array = keys_list.index(callback_query.data)
+
+        # Получение имени файла изображения полимера
+        image_filename = get_polymer_image_filename(callback_query.data)
+        image_path = f'image/polimers/{image_filename}'
+
+        if os.path.isfile(image_path):
+            botTimeWeb.send_photo(callback_query.message.chat.id, photo=open(image_path, 'rb'))
+        else:
+            none_image_path = 'image/polimers/None.png'
+            botTimeWeb.send_photo(callback_query.message.chat.id, photo=open(none_image_path, 'rb'),
+                                  caption='''Эхх... Но не огорчайся, всё ещё в переди! 
+                                  \n Просто разработчики ещё не успели((''')
+
+        if index_in_array <= fields['alpha']:
+            for i in range(0, fields['alpha']):
+                del polymers_game[keys_list[i]]
+            flag_a = True
+            if flag_b and flag_g:
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha")
+            elif flag_b:
+                fields['gamma'] -= fields['beta']
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha, осталось gamma")
+            elif flag_g:
+                fields['beta'] -= fields['alpha']
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha, осталось beta")
+            else:
+                fields['beta'] -= fields['alpha']
+                fields['gamma'] -= fields['alpha']
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha, осталось beta и gamma")
+            fields['alpha'] = -1
+        elif (index_in_array > fields['alpha']) and (index_in_array <= fields['beta']):
+            for i in range(fields['alpha'] + 1, fields['beta'] - 1):
+                del polymers_game[keys_list[i]]
+            flag_b = True
+            if flag_a and flag_g:
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta")
+            if flag_a:
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta, осталось gamma")
+            elif flag_g:
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta, осталось alpha")
+            else:
+                fields['gamma'] = - fields['beta'] + fields['alpha']
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta, осталось alpha и gamma")
+            fields['beta'] = -1
+        else:
+            for i in range(fields['beta'] + 1, fields['gamma'] - 1):
+                del polymers_game[keys_list[i]]
+            flag_g = True
+            if flag_a and flag_b:
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma")
+            if flag_a:
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma, осталось beta")
+            elif flag_b:
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma, осталось alpha")
+            else:
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma, осталось alpha и beta")
+            fields['gamma'] = -1
+        if not (flag_a and flag_b and flag_g):
+            botTimeWeb.send_message(callback_query.message.chat.id, "Химические элементы добавлены в использованные.")
+            elements = '\n'.join([f"{key}: {value}" for key, value in chemical_elements.items()])
+            botTimeWeb.send_message(callback_query.message.chat.id,
+                                    f"Элементы, которые есть на данный момент:\n{elements}")
+        else:
+            botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали все поля")
+
+
+@botTimeWeb.callback_query_handler(func=lambda call: True)
+def callback_handler(callback_query):
+    assemblePoly(callback_query)
+
+
+def assemblePoly(callback_query):
+    for element, count in chemical_elements.items():
+        if element in chemical_elements_old:
+            chemical_elements_old[element] += count
+        else:
+            chemical_elements_old[element] = count
+    chemical_elements.clear()
+    botTimeWeb.send_message(callback_query.message.chat.id, "Химические элементы добавлены в использованные.")
 
 
 # Проверка на то если ли возможность уже что-то собрать
