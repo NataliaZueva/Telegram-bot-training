@@ -4,32 +4,39 @@ from telebot import types
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 botTimeWeb = telebot.TeleBot('6782691562:AAFOUfac0eiFvfZVH_mCGoa1Oaej0g54DEk')
-chemical_elements = {}  # Пустой словарь химических элементов
-chemical_elements_old = {}  # Пустой словарь химических элементов, которе игрок использовал
-chemical_old = []  # Массив из названий собранных полимеров
 
-with open('polymers.txt', 'r', encoding="utf-8") as file:
-    lines = file.readlines()
-    polymers_game = {}
-    fields = {}
-    for line in lines:
-        composition_dict = {}
-        polymer, field, *composition = line.split()
-        field = field.split('-')[0]
-        composition = [i.split(":") for i in composition[1:]]
-        for each in composition:
-            composition_dict[each[0]] = int(each[1])
-        if field in fields:
-            fields[field] += 1
-        else:
-            fields[field] = 1
-        polymers_game[polymer] = composition_dict
 
-fields['beta'] += fields['alpha']
-fields['gamma'] += fields['beta']
-flag_a = False
-flag_b = False
-flag_g = False
+def game_start():
+    global chemical_elements, chemical_elements_old, chemical_old, polymers_game, fields, flag_a, flag_b, flag_g
+    chemical_elements = {}  # Пустой словарь химических элементов
+    chemical_elements_old = {}  # Пустой словарь химических элементов, которе игрок использовал
+    chemical_old = []  # Массив из названий собранных полимеров
+
+    with open('polymers.txt', 'r', encoding="utf-8") as file:
+        lines = file.readlines()
+        polymers_game = {}
+        fields = {}
+        for line in lines:
+            composition_dict = {}
+            polymer, field, *composition = line.split()
+            field = field.split('-')[0]
+            composition = [i.split(":") for i in composition[1:]]
+            for each in composition:
+                composition_dict[each[0]] = int(each[1])
+            if field in fields:
+                fields[field] += 1
+            else:
+                fields[field] = 1
+            polymers_game[polymer] = composition_dict
+
+    fields['beta'] += fields['alpha']
+    fields['gamma'] += fields['beta']
+    flag_a = False
+    flag_b = False
+    flag_g = False
+
+
+game_start()
 
 
 # начальное окно спрашивает о действиях после команды /start
@@ -38,31 +45,80 @@ def startBot(message):
     markup = types.InlineKeyboardMarkup()
     button_begin = types.InlineKeyboardButton(text='Начать игру', callback_data='game_begin')
     button_rules = types.InlineKeyboardButton(text='Правила игры', callback_data='game_rules')
-    button_exit = types.InlineKeyboardButton(text='Выйти', callback_data='exit')
+    button_rules_bot = types.InlineKeyboardButton(text='Работа бота', callback_data='game_rules_bot')
     markup.row(button_begin)
-    markup.row(button_rules, button_exit)
+    markup.row(button_rules, button_rules_bot)
     botTimeWeb.send_message(message.chat.id, "Выберите действие:", reply_markup=markup)
 
 
 # Правила игры
 @botTimeWeb.callback_query_handler(func=lambda call: call.data == 'game_rules')
 def gameRules(call):
-    botTimeWeb.send_message(call.message.chat.id, "Это будут интерактивные правила!!!")
-    botTimeWeb.send_photo(call.message.chat.id, photo=open('image/rules_1.png', 'rb'),
-                          caption="В начале игры перед вами есть доска на которой нужно будет собрать СФ")
-    # Добавляем кнопку "Дальше"
+    botTimeWeb.send_photo(call.message.chat.id, photo=open('image/rules.png', 'rb'),
+                          caption='''В начале игры перед вами лежат некоторые предметы:
+    1. Карточка полимеров для сбора
+    2. СФ - структурные фрагменты, для сбора структурных формул
+    3. Планшет для сбора полимеров''')
+
     keyboard = types.InlineKeyboardMarkup()
-    next_button1 = types.InlineKeyboardButton("Что такое СФ?", callback_data='next')
-    next_button2 = types.InlineKeyboardButton("Для чего она?", callback_data='next')
-    keyboard.add(next_button1, next_button2)
+    next_button = types.InlineKeyboardButton("Далее", callback_data='game_rules1')
+    keyboard.add(next_button)
 
-    botTimeWeb.send_message(call.message.chat.id, "Нажмите кнопку 'Дальше' для продолжения.", reply_markup=keyboard)
+    botTimeWeb.send_message(call.message.chat.id, "Выберите действие:", reply_markup=keyboard)
 
 
-# Продолжение правил
+@botTimeWeb.callback_query_handler(func=lambda call: call.data == 'game_rules1')
+def gameRules(call):
+    botTimeWeb.send_photo(call.message.chat.id, photo=open('image/rules_1.png', 'rb'),
+                          caption='''Ведущий будет доставать из мешочка СФ и проговаривать
+Вам нужно их ставить перед собой для последующей сборки
+Так же вам нужно отметить их в данном боте''')
+    botTimeWeb.send_message(call.message.chat.id, '''Цель игры: как можно быстрее собрать 3 полимера на планшете
+Но стоит учитывать что другие игроки тоже хотят победить!
+Возможно быстрая сборка окажется не самой эффективной для победы ''')
+
+    keyboard = types.InlineKeyboardMarkup()
+    next_button = types.InlineKeyboardButton("Начать игру", callback_data='game_begin')
+    next_button1 = types.InlineKeyboardButton("Работа с ботом", callback_data='game_rules_bot')
+    keyboard.add(next_button, next_button1)
+
+    botTimeWeb.send_message(call.message.chat.id, "Выберите действие:", reply_markup=keyboard)
+
+
+# Правила игры bot
+@botTimeWeb.callback_query_handler(func=lambda call: call.data == 'game_rules_bot')
+def gameRulesBot(call):
+    botTimeWeb.send_message(call.message.chat.id, "Правила по работе с ботом")
+    botTimeWeb.send_photo(call.message.chat.id, photo=open('image/bot_1.png', 'rb'),
+                          caption='''В начале игры перед вами появятся определенные кнопки:
+    1 и 2 строка - СФ для сбора полимеров
+    Использованные СФ - после сбора определенного полимера, СФ попадут в данный список
+    Полимеры - открыть подсказку всех полимеров
+    Закончить - сбрасывает игру''')
+
+    keyboard = types.InlineKeyboardMarkup()
+    next_button = types.InlineKeyboardButton("Далее", callback_data='next')
+    keyboard.add(next_button)
+    botTimeWeb.send_message(call.message.chat.id, "Выберите действие:", reply_markup=keyboard)
+
+
 @botTimeWeb.callback_query_handler(func=lambda call: call.data == 'next')
-def nextStep(call):
-    botTimeWeb.send_message(call.message.chat.id, "Конец")
+def gameRules(call):
+    botTimeWeb.send_message(call.message.chat.id,
+                            '''Вам могут встречаться и обычные названия полимеров и нет
+  Пример
+      Полистирол и Полистирол_1СН
+      Полистирол - тот самый который показан в карточке полимеров
+      Полистирол_1СН - полимер с одной заменой СН''')
+    botTimeWeb.send_message(call.message.chat.id,
+                            '''У вас могут встречаться разные полимеры и все они помогут вам сделать замену и быстрее победить!''')
+
+    keyboard = types.InlineKeyboardMarkup()
+    next_button = types.InlineKeyboardButton("Начать игру", callback_data='game_begin')
+    next_button1 = types.InlineKeyboardButton("Правила игры", callback_data='game_rules')
+    keyboard.add(next_button, next_button1)
+
+    botTimeWeb.send_message(call.message.chat.id, "Выберите действие:", reply_markup=keyboard)
 
 
 # После начала начинается игра с кнопками
@@ -101,19 +157,7 @@ def used_SF(message):
 
 @botTimeWeb.message_handler(func=lambda message: message.text == 'Закончить')
 def finish(message):
-    global flag_a, flag_b, flag_g, chemical_elements, chemical_elements_old, chemical_old
-
-    fields['beta'] += fields['alpha']
-    fields['gamma'] += fields['beta']
-
-    flag_a = False
-    flag_b = False
-    flag_g = False
-
-    chemical_elements = {}
-    chemical_elements_old = {}
-    chemical_old = []
-
+    game_start()
     botTimeWeb.send_message(message.chat.id, "Программа сброшена, но вы можете начать заново \n/start")
 
 
