@@ -56,9 +56,9 @@ def startBot(message):
 def gameRules(call):
     botTimeWeb.send_photo(call.message.chat.id, photo=open('image/rules.png', 'rb'),
                           caption='''В начале игры перед вами лежат некоторые предметы:
-    1. Карточка полимеров для сбора
-    2. СФ - структурные фрагменты, для сбора структурных формул
-    3. Планшет для сбора полимеров''')
+    1. Карточка полимеров для сбора;
+    2. СФ - структурные фрагменты для сбора структурных формул;
+    3. Планшет для сбора полимеров.''')
 
     keyboard = types.InlineKeyboardMarkup()
     next_button = types.InlineKeyboardButton("Далее", callback_data='game_rules1')
@@ -70,12 +70,12 @@ def gameRules(call):
 @botTimeWeb.callback_query_handler(func=lambda call: call.data == 'game_rules1')
 def gameRules(call):
     botTimeWeb.send_photo(call.message.chat.id, photo=open('image/rules_1.png', 'rb'),
-                          caption='''Ведущий будет доставать из мешочка СФ и проговаривать
-Вам нужно их ставить перед собой для последующей сборки
-Так же вам нужно отметить их в данном боте''')
-    botTimeWeb.send_message(call.message.chat.id, '''Цель игры: как можно быстрее собрать 3 полимера на планшете
-Но стоит учитывать что другие игроки тоже хотят победить!
-Возможно быстрая сборка окажется не самой эффективной для победы ''')
+                          caption='''Ведущий будет доставать из мешочка СФ и проговаривать.
+Вам нужно их ставить перед собой для последующей сборки.
+Так же вам нужно отмечать их в данном боте.''')
+    botTimeWeb.send_message(call.message.chat.id, '''Цель игры: как можно быстрее собрать 3 полимера на планшете.
+Но стоит учитывать, что другие игроки тоже хотят победить!
+Возможно быстрая сборка окажется не самой эффективной для победы... ''')
 
     keyboard = types.InlineKeyboardMarkup()
     next_button = types.InlineKeyboardButton("Начать игру", callback_data='game_begin')
@@ -91,10 +91,10 @@ def gameRulesBot(call):
     botTimeWeb.send_message(call.message.chat.id, "Правила по работе с ботом")
     botTimeWeb.send_photo(call.message.chat.id, photo=open('image/bot_1.png', 'rb'),
                           caption='''В начале игры перед вами появятся определенные кнопки:
-    1 и 2 строка - СФ для сбора полимеров
-    Использованные СФ - после сбора определенного полимера, СФ попадут в данный список
-    Полимеры - открыть подсказку всех полимеров
-    Закончить - сбрасывает игру''')
+    1 и 2 строка - СФ для сбора полимеров;
+    Использованные СФ - после сбора определенного полимера СФ попадут в данный список;
+    Полимеры - открывает подсказку всех полимеров;
+    Закончить - сбрасывает игру.''')
 
     keyboard = types.InlineKeyboardMarkup()
     next_button = types.InlineKeyboardButton("Далее", callback_data='next')
@@ -105,13 +105,13 @@ def gameRulesBot(call):
 @botTimeWeb.callback_query_handler(func=lambda call: call.data == 'next')
 def gameRules(call):
     botTimeWeb.send_message(call.message.chat.id,
-                            '''Вам могут встречаться и обычные названия полимеров и нет
-  Пример
-      Полистирол и Полистирол_1СН
-      Полистирол - тот самый который показан в карточке полимеров
-      Полистирол_1СН - полимер с одной заменой СН''')
+                            '''Вам могут встречаться как обычные названия полимеров, так и нет.
+  Пример:
+      Полистирол и Полистирол_1СН.
+      Полистирол - тот самый, который показан в карточке полимеров.
+      Полистирол_1СН - полимер с одной заменой СН.''')
     botTimeWeb.send_message(call.message.chat.id,
-                            '''У вас могут встречаться разные полимеры и все они помогут вам сделать замену и быстрее победить!''')
+                            '''У вас могут встречаться разные полимеры, и все они помогут вам сделать замену и быстрее победить!''')
 
     keyboard = types.InlineKeyboardMarkup()
     next_button = types.InlineKeyboardButton("Начать игру", callback_data='game_begin')
@@ -158,7 +158,7 @@ def used_SF(message):
 @botTimeWeb.message_handler(func=lambda message: message.text == 'Закончить')
 def finish(message):
     game_start()
-    botTimeWeb.send_message(message.chat.id, "Программа сброшена, но вы можете начать заново \n/start")
+    botTimeWeb.send_message(message.chat.id, "Программа сброшена, но вы можете начать заново. \n/start")
 
 
 # Отобразить доску правил сбора полимеров
@@ -166,7 +166,7 @@ def finish(message):
     func=lambda message: message.text in ['Полимеры'])
 def polim(message):
     botTimeWeb.send_photo(message.chat.id, photo=open('image/khimloto.png', 'rb'),
-                          caption="Вы можете ознакомиться со всеми полимерами которые бывают!")
+                          caption="Вы можете ознакомиться со всеми полимерами, которые бывают!")
 
 
 # проверка нажатия на кнопки хим элементов
@@ -198,7 +198,7 @@ def add_element(message):
         button_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
         button_no = types.InlineKeyboardButton(text='Нет', callback_data='no')
         markup.row(button_yes, button_no)
-        botTimeWeb.send_message(message.chat.id, "Хотите собрать что-нибудь??", reply_markup=markup)
+        botTimeWeb.send_message(message.chat.id, "Хотите собрать что-нибудь?", reply_markup=markup)
 
 
 # Проверка нажатости на кнопки Да и Нет
@@ -234,7 +234,7 @@ def handle_button_click(callback_query):
 
             reply_markup = InlineKeyboardMarkup(rows)
             botTimeWeb.send_message(callback_query.message.chat.id,
-                                    f"Выберете номер полимера для сбора: \n {but_i}",
+                                    f"Выберете номер полимера для сбора: \n{but_i}",
                                     reply_markup=reply_markup)
 
 
@@ -259,52 +259,53 @@ def handle_button_click(callback_query):
         else:
             none_image_path = 'image/polimers/None.png'
             botTimeWeb.send_photo(callback_query.message.chat.id, photo=open(none_image_path, 'rb'),
-                                  caption='''Эхх... Но не огорчайся, всё ещё в переди! 
-                                  \n Просто разработчики ещё не успели((''')
+                                  caption='''Эхх... Но не огорчайся, всё ещё впереди! 
+                                  \n Просто разработчики ещё не успели всё доработать((''')
 
         if index_in_array <= fields['alpha']:
             for i in range(0, fields['alpha']):
                 del polymers_game[keys_list[i]]
             flag_a = True
             if flag_b and flag_g:
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha.")
             elif flag_b:
                 fields['gamma'] -= fields['beta']
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha, осталось gamma")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha, осталось gamma.")
             elif flag_g:
                 fields['beta'] -= fields['alpha']
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha, осталось beta")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha, осталось beta.")
             else:
                 fields['beta'] -= fields['alpha']
                 fields['gamma'] -= fields['alpha']
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha, осталось beta и gamma")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле alpha, осталось beta и gamma.")
             fields['alpha'] = -1
         elif (index_in_array > fields['alpha']) and (index_in_array <= fields['beta']):
-            for i in range(fields['alpha'] + 1, fields['beta'] - 1):
+            for i in range(fields['alpha'] + 1, fields['beta']):
                 del polymers_game[keys_list[i]]
             flag_b = True
             if flag_a and flag_g:
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta")
-            if flag_a:
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta, осталось gamma")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta.")
+            elif flag_a:
+                fields['gamma'] -= fields['beta']
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta, осталось gamma.")
             elif flag_g:
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta, осталось alpha")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta, осталось alpha.")
             else:
                 fields['gamma'] = - fields['beta'] + fields['alpha']
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta, осталось alpha и gamma")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле beta, осталось alpha и gamma.")
             fields['beta'] = -1
         else:
-            for i in range(fields['beta'] + 1, fields['gamma'] - 1):
+            for i in range(fields['beta'] + 1, fields['gamma']):
                 del polymers_game[keys_list[i]]
             flag_g = True
             if flag_a and flag_b:
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma")
-            if flag_a:
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma, осталось beta")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma.")
+            elif flag_a:
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma, осталось beta.")
             elif flag_b:
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma, осталось alpha")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma, осталось alpha.")
             else:
-                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma, осталось alpha и beta")
+                botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали поле gamma, осталось alpha и beta.")
             fields['gamma'] = -1
         if not (flag_a and flag_b and flag_g):
             botTimeWeb.send_message(callback_query.message.chat.id, "Химические элементы добавлены в использованные.")
@@ -312,7 +313,7 @@ def handle_button_click(callback_query):
             botTimeWeb.send_message(callback_query.message.chat.id,
                                     f"Элементы, которые есть на данный момент:\n{elements}")
         else:
-            botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали все поля")
+            botTimeWeb.send_message(callback_query.message.chat.id, "Вы собрали все поля. Поздравляем!")
 
 
 @botTimeWeb.callback_query_handler(func=lambda call: True)
