@@ -40,3 +40,10 @@
 7. После начала игы перед вами есть те самые СФ которые достает ведущий
 
 ![image](https://github.com/NataliaZueva/Telegram-bot-training/assets/91422734/e7c245c0-733d-4dc2-aaf8-b2755290735f)
+
+
+
+8. В папке image/polimers - можно посмотреть полимеры 
+
+![image](https://github.com/NataliaZueva/Telegram-bot-training/assets/91422734/a9ff6826-25d1-4270-aa7b-c9f1233870b8)
+
