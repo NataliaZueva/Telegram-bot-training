@@ -106,10 +106,17 @@ def gameRulesBot(call):
 def gameRules(call):
     botTimeWeb.send_message(call.message.chat.id,
                             '''Вам могут встречаться как обычные названия полимеров, так и нет.
-  Пример:
-      Полистирол и Полистирол_1СН.
-      Полистирол - тот самый, который показан в карточке полимеров.
-      Полистирол_1СН - полимер с одной заменой СН.''')
+Пример 1: Полистирол и Полистирол_1СН.
+    Полистирол - тот самый, который показан в карточке полимеров
+    Полистирол_1СН - полимер с одной заменой СН''')
+
+    botTimeWeb.send_message(call.message.chat.id,
+                            '''Пример 2: Поливинил_1СH2v1 и Поливинил_1СH2v2
+Замены бывают разными и все они учтены!
+В данном примере СН2 можно получить 2 разными способами
+    1. С + CH
+    2. C + H + H''')
+
     botTimeWeb.send_message(call.message.chat.id,
                             '''У вас могут встречаться разные полимеры, и все они помогут вам сделать замену и быстрее победить!''')
 
@@ -260,7 +267,7 @@ def handle_button_click(callback_query):
             none_image_path = 'image/polimers/None.png'
             botTimeWeb.send_photo(callback_query.message.chat.id, photo=open(none_image_path, 'rb'),
                                   caption='''Эхх... Но не огорчайся, всё ещё впереди! 
-                                  \n Просто разработчики ещё не успели всё доработать((''')
+                                  \nПросто разработчики ещё не успели всё доработать((''')
 
         if index_in_array <= fields['alpha']:
             for i in range(0, fields['alpha']):
